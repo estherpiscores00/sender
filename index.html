@@ -38,7 +38,7 @@
     .sidebar-active { bottom: 0 !important; }
 
     /* Reducción de fuentes y estilos internos */
-    .sidebar-content { padding: 15px; font-size: 0.85rem; color: #333; }
+    .sidebar-content { padding: 15px; font-size: 0.90rem; color: #333; }
     .ruta-titulo { margin: 0 0 10px 0; font-size: 1.1rem; color: #2c3e50; font-weight: bold; }
     
     .meta-table {
@@ -66,10 +66,14 @@
     .sidebar-foto { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; margin: 10px 0; }
 
     .btn-wikiloc { 
+        background: rgba(132, 180, 4, 0.9); /* Wikiloc verde al 90% */
         display: block; text-align: center; background: #84b404; color: white; 
         padding: 8px; border-radius: 5px; text-decoration: none; font-weight: bold; 
         font-size: 0.8rem; margin-top: 10px; 
     }
+
+
+    
 </style>
 
 
@@ -81,6 +85,14 @@
         <div id="sidebar">
             <div class="sidebar-content" id="sidebar-info">
                 </div>
+        </div>
+    </div>
+
+    
+    <div id="search-container" style="position: absolute; top: 10px; left: 50px; z-index: 1000; width: 250px;">
+    <input type="text" id="map-search" placeholder="🔍 Buscar ruta..." 
+        style="width: 100%; padding: 10px; border-radius: 20px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 0.9rem; outline: none;">
+    <div id="search-results" style="background: white; border-radius: 10px; margin-top: 5px; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
         </div>
     </div>
 

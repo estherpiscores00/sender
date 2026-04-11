@@ -10,6 +10,8 @@ const cyclOSM = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{
 // Variables globales
 let capaRutaActiva = null;
 let todasLasRutasGeoJSON = null;
+// Variable para guardar la capa de puntos y poder filtrarlos
+let capaPuntos;
 
 // 2. Cargar primero las geometrías de las rutas
 fetch('rutas_unificadas_con_id.geojson')
@@ -26,7 +28,9 @@ function cargarPuntosInteractivos() {
     fetch('puntos_completos_interactivos.geojson')
         .then(res => res.json())
         .then(data => {
-            L.geoJSON(data, {
+            // Guardamos los datos para el buscador
+            const puntosData = data.features;
+            capaPuntos =L.geoJSON(data, {
                 pointToLayer: (feature, latlng) => {
                     return L.circleMarker(latlng, {
                         radius: 8,
@@ -48,6 +52,9 @@ function cargarPuntosInteractivos() {
                     layer.on('mouseout', function() { this.setStyle({ fillColor: '#ff0800' }); });
                 }
             }).addTo(map);
+            // ACTIVAR EL BUSCADOR
+            configurarBuscador(puntosData);
+
         })
         .catch(err => console.error("Error cargando puntos:", err));
 }
@@ -141,4 +148,73 @@ function cerrarPanel() {
         map.removeLayer(capaRutaActiva);
         capaRutaActiva = null;
     }
+// 3. NUEVO: Borramos el texto del buscador y ocultamos resultados
+    const buscador = document.getElementById('map-search');
+    const resultados = document.getElementById('search-results');
+    
+    if (buscador) {
+        buscador.value = ''; // Borra el texto escrito
+    }
+    if (resultados) {
+        resultados.style.display = 'none'; // Esconde la lista de sugerencias
+    }
+    
+    map.invalidateSize();
+}
+
+
+
+function configurarBuscador(datos) {
+    const input = document.getElementById('map-search');
+    const resultsContainer = document.getElementById('search-results');
+
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        resultsContainer.innerHTML = ''; // Limpiar resultados anteriores
+
+        if (query.length < 2) {
+            resultsContainer.style.display = 'none';
+            return;
+        }
+
+        // Filtrar rutas por nombre
+        const filtrados = datos.filter(f => 
+            f.properties.name.toLowerCase().includes(query)
+        ).slice(0, 10); // Mostrar máximo 10 resultados
+
+        if (filtrados.length > 0) {
+            resultsContainer.style.display = 'block';
+            filtrados.forEach(ruta => {
+                const div = document.createElement('div');
+                div.style.padding = '10px';
+                div.style.borderBottom = '1px solid #eee';
+                div.style.cursor = 'pointer';
+                div.style.fontSize = '0.85rem';
+                div.innerHTML = `
+                <div style="font-weight: bold; color: #2c3e50;">${ruta.properties.name}</div>
+                <div style="font-size: 0.75rem; color: #7f8c8d;">${formatearFecha(ruta.properties.fecha)}</div>
+            `;
+                div.onmouseenter = () => div.style.backgroundColor = '#f8f9fa';
+                div.onmouseleave = () => div.style.backgroundColor = 'white';
+                div.onclick = () => {
+                    // Al hacer clic: centrar mapa, mostrar ruta y cerrar buscador
+                    const coords = ruta.geometry.coordinates;
+                    map.setView([coords[1], coords[0]], 14);
+                    mostrarDetalleRuta(ruta.properties);
+                    input.value = ruta.properties.name;
+                    resultsContainer.style.display = 'none';
+                };
+                resultsContainer.appendChild(div);
+            });
+        } else {
+            resultsContainer.style.display = 'none';
+        }
+    });
+
+    // Cerrar resultados si se hace clic fuera
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('search-container').contains(e.target)) {
+            resultsContainer.style.display = 'none';
+        }
+    });
 }
