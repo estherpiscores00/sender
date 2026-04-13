@@ -23,6 +23,9 @@ fetch('rutas_unificadas_con_id.geojson')
     })
     .catch(err => console.error("Error cargando rutas:", err));
 
+
+    
+
 // 3. Cargar los puntos (donde el usuario hace clic)
 function cargarPuntosInteractivos() {
     fetch('puntos_completos_interactivos.geojson')
@@ -32,9 +35,13 @@ function cargarPuntosInteractivos() {
             const puntosData = data.features;
             capaPuntos =L.geoJSON(data, {
                 pointToLayer: (feature, latlng) => {
+
+                // calcular color dificultad
+                    const colorDificultad = obtenerColor(feature.properties.distancia, feature.properties.desnivel);
+
                     return L.circleMarker(latlng, {
                         radius: 8,
-                        fillColor: "#ff0800",
+                        fillColor: colorDificultad,
                         color: "#fff",
                         weight: 2,
                         opacity: 1,
@@ -42,8 +49,14 @@ function cargarPuntosInteractivos() {
                     });
                 },
                 onEachFeature: (feature, layer) => {
+                   
+                   
                     layer.on('click', (e) => {
                         L.DomEvent.stopPropagation(e); // Evita clics fantasma en el mapa
+
+                        // ✨ NUEVA LÍNEA: Imprime todos los datos del punto en la consola
+                        console.log("Datos del punto clicado:", feature.properties);
+
                         mostrarDetalleRuta(feature.properties);
                     });
                     
@@ -51,6 +64,8 @@ function cargarPuntosInteractivos() {
                     layer.on('mouseover', function() { this.setStyle({ fillColor: '#2c3e50' }); });
                     layer.on('mouseout', function() { this.setStyle({ fillColor: '#ff0800' }); });
                 }
+
+                
             }).addTo(map);
             // ACTIVAR EL BUSCADOR
             configurarBuscador(puntosData);
@@ -77,6 +92,14 @@ function formatearFecha(fechaOriginal) {
     return fechaOriginal; // Si falla algo, devuelve el original
 }
 
+function obtenerColor(dist, desnivel) {
+    const esfuerzo = parseFloat(dist) + (parseFloat(desnivel) / 100);
+    if (esfuerzo < 6) return '#27ae60'; // Fácil
+    if (esfuerzo < 12) return '#f1c40f'; // Moderada
+    if (esfuerzo < 18) return '#e67e22'; // Difícil
+    return '#ff1900';                   // Muy difícil
+}
+
 // NUEVO: Evento para cerrar al hacer clic en el mapa vacío
 map.on('click', function() {
     cerrarPanel();
@@ -87,6 +110,9 @@ function mostrarDetalleRuta(props) {
 
     const idBuscado = String(props.id_ruta);
     const rutaGeom = todasLasRutasGeoJSON.features.find(f => String(f.properties.id_ruta) === idBuscado);
+
+    // 1. IMPORTANTE: Reiniciar el scroll al principio
+    sidebar.scrollTop = 0;
 
     if (rutaGeom) {
         capaRutaActiva = L.geoJSON(rutaGeom, {
@@ -106,7 +132,17 @@ function mostrarDetalleRuta(props) {
 
         // 3. Relleno de información (Letra pequeña y campos nuevos)
         const sidebarInfo = document.getElementById('sidebar-info');
+
+        // 1. Preparamos el HTML de la foto (solo si existe)
+        let fotoHTML = '';
+        if (props.foto) {
+            fotoHTML = `<img src="${props.foto}" class="sidebar-foto" onerror="this.style.display='none'">`;
+        }
+
         sidebarInfo.innerHTML = `
+
+            <div class="btn-cerrar-circulo" onclick="cerrarPanel()" title="Cerrar">×</div>
+
             <div class="ruta-titulo">${props.name || 'Sin nombre'}</div>
             
             <table class="meta-table">
@@ -124,21 +160,25 @@ function mostrarDetalleRuta(props) {
                 </tr>
                 <tr>
                     <td colspan="2" style="white-space: normal; padding-top: 5px;">
-                        👥 <span style="font-size: 0.75rem;">${props.participantes}</span>
+                        👥 <span>${props.participantes}</span>
                     </td>
                 </tr>
             </table>
 
-            <div style="font-size: 0.8rem; line-height: 1.3; color: #666; margin: 10px 0; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px;">
+            <div style="font-size: 1rem; line-height: 1.3; color: #666; margin: 10px 0; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px;">
                 ${props.comentario || ''}
             </div>
 
             <a href="${props.wikiloc}" target="_blank" rel="noopener" class="btn-wikiloc">WIKILOC ↗</a>
+
+            ${fotoHTML}
             
-            <button class="btn-cerrar" style="font-size: 0.7rem; color: #999; background: none; border: 1px solid #ddd;" onclick="cerrarPanel()">
+            <button class="btn-cerrar" style="font-size: 1rem; padding: 6px; margin-top: 10px; border-radius: 5px; color: #666; background: #f0f0f0; border: 1px solid #ddd; width: 100%; cursor: pointer;" onclick="cerrarPanel()">
                 Cerrar
             </button>
         `;
+
+        sidebar.classList.add('sidebar-active');
     }
 }
 
