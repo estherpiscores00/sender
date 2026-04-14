@@ -40,12 +40,12 @@ function cargarPuntosInteractivos() {
                     const colorDificultad = obtenerColor(feature.properties.distancia, feature.properties.desnivel);
 
                     return L.circleMarker(latlng, {
-                        radius: 8,
+                        radius: 12,
                         fillColor: colorDificultad,
-                        color: "#fff",
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
+                        color: "transparent",     // Borde invisible
+                        weight: 20,               // 👈 ¡Borde gigante de 20px! Esto crea un área de clic enorme
+                        fillOpacity: 0.9,
+                        stroke: true              // Necesario para que el borde transparente exista
                     });
                 },
                 onEachFeature: (feature, layer) => {
