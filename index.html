@@ -6,6 +6,8 @@
     <title>Visor de Rutas - Grupo de Senderismo</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+
     
 <style>
     body { font-size: 16px !important; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
@@ -63,7 +65,42 @@
         color: #2c3e50;
     }
 
-    .sidebar-foto { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; margin: 10px 0; }
+            /* Estilo para la foto en el panel lateral */
+            .sidebar-foto {
+                width: 100%;
+                height: 200px;       /* Altura por defecto para móvil */
+                object-fit: cover;   /* Recorta la foto para que llene el espacio sin estirarse */
+                object-position: center;
+                border-radius: 8px;
+                margin-top: 15px;
+                display: block;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                transition: transform 0.2s ease;
+            }
+
+            /* --- AJUSTES PARA PC DE ESCRITORIO --- */
+            @media (min-width: 768px) {
+                .sidebar-foto {
+                    height: auto;        /* Deja que la altura se ajuste sola */
+                    max-height: 500px;   /* Para que no se haga infinita hacia abajo */
+                    object-fit: contain; /* 👈 CLAVE: Ajusta la foto sin recortar nada */
+                    background-color: #f0f0f0; /* Fondo gris por si la foto es estrecha */
+                    width: 100%;
+                }
+}
+                
+                .sidebar-foto:hover {
+                    transform: scale(1.02); /* Efecto sutil al pasar el ratón */
+                    filter: brightness(1.1);
+                }
+            }
+
+            /* Estilo para el enlace de la foto */
+            .foto-link {
+                text-decoration: none;
+                display: block;
+                cursor: zoom-in; /* Cambia el cursor para indicar que se puede ampliar */
+            }
 
     .btn-wikiloc { 
         background: rgba(132, 180, 4, 0.9); /* Wikiloc verde al 90% */
@@ -131,5 +168,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

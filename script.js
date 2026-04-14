@@ -136,7 +136,10 @@ function mostrarDetalleRuta(props) {
         // 1. Preparamos el HTML de la foto (solo si existe)
         let fotoHTML = '';
         if (props.foto) {
-            fotoHTML = `<img src="${props.foto}" class="sidebar-foto" onerror="this.style.display='none'">`;
+            fotoHTML = `
+                <a href="${props.foto}" target="_blank" class="foto-link">
+                    <img src="${props.foto}" class="sidebar-foto" onerror="this.style.display='none'">
+                </a>`;
         }
 
         sidebarInfo.innerHTML = `
